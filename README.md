@@ -90,17 +90,6 @@ Then open your browser at:
 Simply double-click `index.html` in Windows File Explorer or open it in Google Chrome / Edge.
 
 ---
-
-## 📂 Project Structure
-
-```
-c:/Users/DELL/Desktop/MLPRO/
-├── index.html       # Semantic HTML5 single-page application
-├── styles.css       # Complete modern CSS design system & glassmorphism
-├── app.js           # Scoring algorithms, I18N, state management & UI rendering
-├── data/
-│   └── jobs.js      # LinkedIn 2023-2024 dataset, skill matrix & presets
-├── server.py        # Lightweight local HTTP server launcher
-├── test_app.py      # Automated logic & threshold verification test suite
-└── README.md        # Project documentation
+برنامج اساسيات تعلم الاله
+GitHub https://github.com/SDAIAAcademy
 ```
