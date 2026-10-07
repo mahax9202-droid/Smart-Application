@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Smart Application — Job Match & Readiness Predictor</title>
+  <meta name="description" content="Intelligent career advisor powered by LinkedIn Job Postings (2023-2024) data. Evaluates job match scores, growth potential, and tailored readiness roadmaps." />
+  
+  <!-- Modern Google Fonts: Outfit (EN) & Cairo (AR) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  
+  <!-- FontAwesome Icons for crisp visual cues -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- Background Ambient Glow Orbs -->
+  <div class="bg-ambient" aria-hidden="true">
+    <div class="ambient-orb orb-1"></div>
+    <div class="ambient-orb orb-2"></div>
+    <div class="ambient-orb orb-3"></div>
+  </div>
+
+  <div class="app-container">
+
+    <!-- Header Navigation -->
+    <header class="app-header">
+      <div class="header-brand">
+        <div class="brand-icon">
+          <i class="fa-solid fa-brain"></i>
+        </div>
+        <div class="brand-info">
+          <h1 id="i18n-app-title">Smart Application</h1>
+          <span class="brand-badge" id="i18n-app-subtitle">
+            <i class="fa-brands fa-linkedin"></i> LinkedIn Job Postings (2023–2024) Benchmark
+          </span>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <!-- Candidate Quick Presets Selector -->
+        <button id="theme-toggle-btn" class="icon-btn" title="Toggle Light/Dark Theme" aria-label="Toggle Theme">
+          <i class="fa-solid fa-moon" id="theme-icon"></i>
+        </button>
+
+        <!-- Bilingual Switcher -->
+        <button id="lang-toggle-btn" class="lang-toggle-btn" aria-label="Switch Language">
+          <i class="fa-solid fa-globe"></i>
+          <span id="lang-btn-text">العربية</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Candidate Presets Demo Bar -->
+    <section class="presets-banner" aria-label="Candidate Presets">
+      <div class="presets-label">
+        <i class="fa-solid fa-wand-magic-sparkles"></i>
+        <span id="i18n-presets-label">Quick Test Presets:</span>
+      </div>
+      <div class="presets-chips" id="presets-container">
+        <!-- Populated via JavaScript -->
+      </div>
+    </section>
+
+    <!-- Main Workspace Grid -->
+    <main class="main-layout">
+
+      <!-- ================================================================== -->
+      <!-- SECTION 3: INPUTS SECTION (بيانات المتقدم) -->
+      <!-- ================================================================== -->
+      <section class="glass-panel input-section" aria-labelledby="applicant-inputs-heading">
+        <div class="panel-header">
+          <h2 id="applicant-inputs-heading">
+            <i class="fa-solid fa-user-gear" style="color: var(--primary);"></i>
+            <span id="i18n-inputs-title">Applicant Profile</span>
+          </h2>
+          <p class="panel-subtitle" id="i18n-inputs-subtitle">
+            Enter your qualifications to analyze real-world market readiness.
+          </p>
+        </div>
+
+        <form id="evaluation-form" onsubmit="event.preventDefault(); window.evaluateApplicant();">
+          
+          <!-- 1. Degree / Education Level -->
+          <div class="form-group">
+            <label for="degree-select" class="form-label">
+              <span id="i18n-label-degree"><i class="fa-solid fa-graduation-cap"></i> Degree / Education Level</span>
+            </label>
+            <select id="degree-select" class="custom-select" required>
+              <!-- Options populated dynamically -->
+            </select>
+          </div>
+
+          <!-- 2. Target Job -->
+          <div class="form-group">
+            <label for="job-select" class="form-label">
+              <span id="i18n-label-job"><i class="fa-solid fa-briefcase"></i> Target Job Role</span>
+              <span class="label-help" id="i18n-market-sourced">LinkedIn 23–24</span>
+            </label>
+            <select id="job-select" class="custom-select" required>
+              <!-- Options populated dynamically -->
+            </select>
+          </div>
+
+          <!-- 3. Years of Experience -->
+          <div class="form-group">
+            <label for="experience-range" class="form-label">
+              <span id="i18n-label-exp"><i class="fa-solid fa-clock-rotate-left"></i> Relevant Experience</span>
+              <span class="label-help" id="i18n-exp-help">Total relevant years</span>
+            </label>
+            <div class="exp-controls">
+              <input type="range" id="experience-range" class="range-slider" min="0" max="12" step="0.5" value="2.5" />
+              <div class="exp-number-display">
+                <span id="exp-val-display" class="exp-val">2.5</span>
+                <span class="exp-unit" id="i18n-years-unit">yrs</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 4. Technical Skills & Proficiency (0 to 5 Scale) -->
+          <div class="form-group">
+            <div class="form-label">
+              <span id="i18n-label-skills"><i class="fa-solid fa-sliders"></i> Technical Skills & Proficiency</span>
+              <span class="label-help" id="i18n-scale-hint">0 to 5 scale</span>
+            </div>
+
+            <!-- Legend explaining 0-5 scale -->
+            <div class="skills-legend">
+              <span>0: None</span>
+              <span>1: Novice</span>
+              <span>2: Familiar</span>
+              <span>3: Intermediate</span>
+              <span>4: Advanced</span>
+              <span>5: Expert</span>
+            </div>
+
+            <div class="skills-container" id="skills-list-container">
+              <!-- Dynamically populated with skills and interactive 0-5 buttons -->
+            </div>
+          </div>
+
+          <!-- Submit Action Button -->
+          <button type="submit" id="submit-evaluate-btn" class="submit-btn">
+            <i class="fa-solid fa-bolt-lightning"></i>
+            <span id="i18n-btn-evaluate">Evaluate Match & Readiness</span>
+          </button>
+        </form>
+      </section>
+
+      <!-- ================================================================== -->
+      <!-- SECTION 5: OUTPUT & RESULTS LAYOUT (هيكلة نتائج العرض) -->
+      <!-- ================================================================== -->
+      <section class="results-container" id="results-section" aria-live="polite">
+
+        <!-- ---------------------------------------------------------------- -->
+        <!-- BLOCK 1: TOP DASHBOARD (VISUAL OVERVIEW) -->
+        <!-- ---------------------------------------------------------------- -->
+        <article class="dashboard-block" id="block-dashboard">
+          <div class="dashboard-grid">
+            
+            <!-- Prominent Match Score Gauge / Chart -->
+            <div class="gauge-wrapper" title="Overall Match Score">
+              <svg class="gauge-svg" viewBox="0 0 200 200">
+                <defs>
+                  <linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#6366f1" />
+                    <stop offset="50%" stop-color="#06b6d4" />
+                    <stop offset="100%" stop-color="#10b981" />
+                  </linearGradient>
+                </defs>
+                <circle class="gauge-bg-circle" cx="100" cy="100" r="90"></circle>
+                <circle id="gauge-bar" class="gauge-progress-circle" cx="100" cy="100" r="90"></circle>
+              </svg>
+              <div class="gauge-center-content">
+                <div class="gauge-percentage">
+                  <span id="score-counter">0</span><span class="gauge-unit">%</span>
+                </div>
+                <div class="gauge-label" id="i18n-match-score-label">MATCH SCORE</div>
+              </div>
+            </div>
+
+            <!-- Status Banner & Growth Potential Meter -->
+            <div class="dashboard-details">
+              
+              <!-- Encouraging Status Banner (Strict prompt wording) -->
+              <div id="status-banner" class="status-banner match-excellent">
+                <div class="status-badge" id="status-badge-text">
+                  <i class="fa-solid fa-circle-check"></i> High Match
+                </div>
+                <div class="status-message" id="status-message-text">
+                  Excellent Match — You are highly qualified for this job.
+                </div>
+              </div>
+
+              <!-- Growth Potential Meter -->
+              <div class="growth-potential-card">
+                <div class="growth-header">
+                  <span class="growth-title">
+                    <i class="fa-solid fa-chart-line" style="color: var(--cyan);"></i>
+                    <span id="i18n-growth-meter-title">Growth Potential Meter</span>
+                  </span>
+                  <span class="growth-time-badge" id="growth-time-badge">
+                    <i class="fa-regular fa-clock"></i> <span id="growth-time-val">Ready Now</span>
+                  </span>
+                </div>
+                <div class="growth-progress-track">
+                  <div class="growth-progress-fill" id="growth-progress-fill" style="width: 85%;"></div>
+                </div>
+                <p class="growth-description" id="growth-description-text">
+                  Estimated development timeframe to attain complete target proficiency.
+                </p>
+              </div>
+
+              <!-- Quick Fit Indicators -->
+              <div class="kpi-row">
+                <div class="kpi-chip">
+                  <span class="kpi-chip-label" id="i18n-kpi-skill">Skill Alignment</span>
+                  <span class="kpi-chip-val" id="kpi-skill-val">88%</span>
+                </div>
+                <div class="kpi-chip">
+                  <div class="kpi-chip-label" id="i18n-kpi-exp">Experience Fit</div>
+                  <span class="kpi-chip-val" id="kpi-exp-val">Aligned</span>
+                </div>
+                <div class="kpi-chip">
+                  <div class="kpi-chip-label" id="i18n-kpi-edu">Education Fit</div>
+                  <span class="kpi-chip-val" id="kpi-edu-val">Verified</span>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </article>
+
+        <!-- ---------------------------------------------------------------- -->
+        <!-- BLOCK 2: JOB ALIGNMENT BREAKDOWN -->
+        <!-- ---------------------------------------------------------------- -->
+        <article class="alignment-block" id="block-alignment">
+          <h3 class="block-title">
+            <i class="fa-solid fa-diagram-project" style="color: var(--cyan);"></i>
+            <span id="i18n-alignment-title">Job Alignment Breakdown</span>
+          </h3>
+          <p class="block-desc" id="i18n-alignment-subtitle">
+            Side-by-side comparison of target market demands vs. candidate qualifications.
+          </p>
+
+          <!-- Target Job Summary Meta -->
+          <div class="target-role-header">
+            <div>
+              <div class="target-role-title" id="breakdown-job-title">Machine Learning Engineer</div>
+              <div class="target-role-meta">
+                <span class="meta-pill" id="breakdown-job-category">AI & Data Science</span>
+                <span class="meta-pill salary" id="breakdown-job-salary">$135,000 - $175,000</span>
+                <span class="meta-pill" id="breakdown-job-demand">Demand: High</span>
+              </div>
+            </div>
+            <div id="breakdown-job-degree-badge" class="meta-pill">
+              <i class="fa-solid fa-graduation-cap"></i> Min: Bachelor's
+            </div>
+          </div>
+
+          <div class="alignment-comparison-grid">
+            
+            <!-- Experience Comparison -->
+            <div class="exp-comparison-card">
+              <div class="skill-list-header">
+                <i class="fa-solid fa-calendar-check" style="color: var(--primary);"></i>
+                <span id="i18n-exp-comparison-title">Experience Comparison</span>
+              </div>
+
+              <div class="exp-bar-group">
+                <div class="exp-bar-label">
+                  <span id="i18n-market-required">Target Market Requirement</span>
+                  <span id="exp-req-text">3.0 Years</span>
+                </div>
+                <div class="exp-bar-track">
+                  <div class="exp-bar-fill fill-req" id="exp-req-fill" style="width: 50%;"></div>
+                </div>
+              </div>
+
+              <div class="exp-bar-group">
+                <div class="exp-bar-label">
+                  <span id="i18n-applicant-current">Applicant Experience</span>
+                  <span id="exp-user-text">2.5 Years</span>
+                </div>
+                <div class="exp-bar-track">
+                  <div class="exp-bar-fill fill-user" id="exp-user-fill" style="width: 42%;"></div>
+                </div>
+              </div>
+
+              <div class="exp-delta-badge delta-surplus" id="exp-delta-badge">
+                <i class="fa-solid fa-check"></i> Within targeted hiring window
+              </div>
+            </div>
+
+            <!-- Skills Breakdown: Acquired vs Missing -->
+            <div class="skills-alignment-card">
+              
+              <!-- Acquired / Matched Skills -->
+              <div>
+                <div class="skill-list-header" style="color: #6ee7b7; margin-bottom: 0.6rem;">
+                  <i class="fa-solid fa-circle-check"></i>
+                  <span id="i18n-skills-acquired-title">Matched & Acquired Skills</span>
+                </div>
+                <div class="skills-pill-wrap" id="acquired-skills-container">
+                  <!-- Populated by JS -->
+                </div>
+              </div>
+
+              <!-- Missing Skills / Growth Areas -->
+              <div>
+                <div class="skill-list-header" style="color: #fca5a5; margin-bottom: 0.6rem;">
+                  <i class="fa-solid fa-circle-exclamation"></i>
+                  <span id="i18n-skills-missing-title">Identified Skill Gaps</span>
+                </div>
+                <div class="skills-pill-wrap" id="missing-skills-container">
+                  <!-- Populated by JS -->
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+        </article>
+
+        <!-- ---------------------------------------------------------------- -->
+        <!-- BLOCK 3: ACTIONABLE RECOMMENDATIONS -->
+        <!-- ---------------------------------------------------------------- -->
+        <article class="recommendations-block" id="block-recommendations">
+          
+          <div>
+            <h3 class="block-title">
+              <i class="fa-solid fa-compass" style="color: var(--primary);"></i>
+              <span id="i18n-recommendations-title">Actionable Recommendations</span>
+            </h3>
+            <p class="block-desc" id="i18n-recommendations-subtitle">
+              Intelligent alternatives, focused skill targets, and your customized readiness improvement roadmap.
+            </p>
+          </div>
+
+          <!-- 3.1: Similar Job Recommendations (SHOWN TO ALL APPLICANTS) -->
+          <section class="similar-jobs-section" aria-labelledby="similar-jobs-heading">
+            <div class="section-subhead">
+              <i class="fa-solid fa-shuffle" style="color: var(--cyan);"></i>
+              <span id="similar-jobs-heading">Similar Job Recommendations</span>
+              <span class="section-badge-all" id="i18n-badge-all-applicants">Shown to All Applicants</span>
+            </div>
+            
+            <div class="similar-jobs-grid" id="similar-jobs-container">
+              <!-- Dynamically populated with real calculated alternative matches -->
+            </div>
+          </section>
+
+          <!-- 3.2: Skill Development Recommendations (SHOWN ONLY < 70%) -->
+          <section class="skill-dev-section" id="skill-dev-section" aria-labelledby="skill-dev-heading">
+            <div class="section-subhead" style="color: #f87171;">
+              <i class="fa-solid fa-arrow-trend-up"></i>
+              <span id="skill-dev-heading">Skill Development Recommendations</span>
+              <span class="section-badge-filtered" id="i18n-badge-gap-applicants">Shown Only When Match &lt; 70%</span>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-muted);" id="i18n-skill-dev-desc">
+              Focus on these critical technical competencies to elevate your overall qualification above 80%:
+            </p>
+            <div class="skill-gap-cards-grid" id="skill-gap-cards-container">
+              <!-- Populated by JS for applicants under 70% -->
+            </div>
+          </section>
+
+          <!-- 3.3: Readiness Improvement Plan -->
+          <section class="plan-section" aria-labelledby="readiness-plan-heading">
+            <div class="section-subhead">
+              <i class="fa-solid fa-list-check" style="color: var(--success);"></i>
+              <span id="readiness-plan-heading">Readiness Improvement Plan</span>
+            </div>
+            <div class="timeline-container" id="readiness-timeline-container">
+              <!-- Populated by JS -->
+            </div>
+          </section>
+
+        </article>
+
+      </section>
+
+    </main>
+  </div>
+
+  <!-- JavaScript Modules -->
+  <script src="data/jobs.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
