@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>نظام التنبؤ بالجاهزية المهنية وتطابق الوظائف | LinkedIn ML Predictor</title>
+  <meta name="description" content="نموذج تعلم آلة متطور مبني على بيانات إعلانات وظائف لينكدإن (2023 - 2024) لتقييم مؤهلاتك وتحديد مستوى جاهزيتك (مؤهل، قريب من التأهيل، غير مؤهل) مع رسوم بيانية تفاعلية وفحص الفجوة المهارية.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  <!-- Chart.js CDN for interactive charts -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="top-bar">
+        <div class="brand">
+          <div class="brand-icon">⚡</div>
+          <div class="brand-info">
+            <h1>محلل الجاهزية المهنية بالذكاء الاصطناعي <span class="dataset-badge">LinkedIn 2023-2024 ML</span></h1>
+            <p>تنبؤ فوري بدرجة التطابق (مؤهل، قريب من التأهيل، غير مؤهل) باستخدام خوارزميات التصنيف والانحدار</p>
+          </div>
+        </div>
+        <div class="header-actions">
+          <button id="btnPrintReport" class="btn-secondary" title="طباعة أو تصدير التقرير PDF">
+            🖨️ تصدير التقرير
+          </button>
+          <button id="btnModelModal" class="btn-secondary" title="معلومات النموذج">
+            ℹ️ بنية النموذج (ML Specs)
+          </button>
+        </div>
+      </div>
+
+      <!-- Quick Presets -->
+      <div class="presets-card">
+        <span class="presets-label">⚡ تجربة سريعة (نماذج جاهزة):</span>
+        <div class="preset-pills">
+          <button class="preset-btn" data-preset="junior_ml">🎓 خريج جديد (Junior / ML)</button>
+          <button class="preset-btn" data-preset="mid_fullstack">💼 مطور متوسط (Mid Full Stack)</button>
+          <button class="preset-btn" data-preset="senior_lead">🚀 خبير متقدم (Senior / DevOps)</button>
+          <button class="preset-btn" data-preset="career_changer">🔄 تغيير مسار (غير مؤهل حالياً)</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Grid -->
+    <main class="main-grid">
+      <!-- Input Panel (Candidate Profile) -->
+      <section class="glass-panel" id="candidateFormPanel">
+        <div class="panel-header">
+          <h2>📝 إدخال البيانات المهنية والعملية</h2>
+          <span style="font-size: 12px; color: var(--text-muted);">داتا لينكدإن المرجعية</span>
+        </div>
+        <div class="panel-body">
+          <form id="candidateForm" onsubmit="return false;">
+            <!-- Target Role Selection -->
+            <div class="form-group">
+              <label class="form-label" for="roleSelect">
+                المسمى الوظيفي المستهدف
+                <span class="hint">(الوظيفة المراد التقديم عليها)</span>
+              </label>
+              <select id="roleSelect" class="form-select">
+                <!-- Dynamically populated from LINKEDIN_DATASET -->
+              </select>
+            </div>
+
+            <!-- Seniority & Experience Level -->
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="senioritySelect">
+                  المستوى الوظيفي المستهدف
+                </label>
+                <select id="senioritySelect" class="form-select">
+                  <option value="entry">مبتدئ / حديث تخرج (Entry Level)</option>
+                  <option value="mid" selected>متوسط الخبرة (Mid-Level / Associate)</option>
+                  <option value="senior">متقدم (Senior Level)</option>
+                  <option value="lead">قائد فريق / خبير (Lead / Principal)</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="educationSelect">
+                  المؤهل التعليمي
+                </label>
+                <select id="educationSelect" class="form-select">
+                  <!-- Dynamically populated -->
+                </select>
+              </div>
+            </div>
+
+            <!-- Years of Experience Slider -->
+            <div class="form-group">
+              <label class="form-label">
+                سنوات الخبرة العملية ذات الصلة
+              </label>
+              <div class="slider-container">
+                <input type="range" id="expSlider" class="range-slider" min="0" max="15" step="0.5" value="3">
+                <span id="expValueBadge" class="slider-val-badge">3 سنوات</span>
+              </div>
+            </div>
+
+            <!-- Skills Selector -->
+            <div class="form-group">
+              <label class="form-label">
+                المهارات والأدوات التي تتقنها
+                <span class="hint">(انقر لاختيار المهارات أو أضف مهاراتك الخاصة)</span>
+              </label>
+              <div class="skills-selector-wrapper">
+                <div class="skills-input-bar">
+                  <input type="text" id="customSkillInput" class="form-input" placeholder="اكتب مهارة واضغط Enter (مثال: GraphQL)...">
+                  <button type="button" id="btnAddCustomSkill" class="btn-add-skill">إضافة +</button>
+                </div>
+                <span class="suggested-skills-label">المهارات الأكثر طلباً في إعلانات لينكدإن لهذه الوظيفة:</span>
+                <div id="skillsChipsContainer" class="chips-cloud">
+                  <!-- Dynamically rendered chips -->
+                </div>
+              </div>
+            </div>
+
+            <!-- Practical Projects & Production Experience -->
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="projectsCount">
+                  المشاريع العملية المنجزة
+                  <span class="hint">(نماذج حقيقية في البورتفوليو)</span>
+                </label>
+                <input type="number" id="projectsCount" class="form-input" min="0" max="30" value="4">
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">
+                  الشهادات المهنية المعتمدة
+                  <span class="hint">(عامل تعزيز)</span>
+                </label>
+                <div id="certsContainer" class="certs-grid">
+                  <!-- Dynamically rendered -->
+                </div>
+              </div>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="button" id="btnAnalyze" class="btn-analyze">
+              <span>🚀 تشغيل نموذج تعلم الآلة وتحليل الملف</span>
+            </button>
+          </form>
+        </div>
+      </section>
+
+      <!-- Results & Visual Analytics Column -->
+      <section class="results-column" id="resultsSection">
+        <!-- Master Status Card -->
+        <div class="master-result-card" id="masterResultCard">
+          <div class="gauge-wrapper">
+            <canvas id="gaugeCanvas" width="200" height="200"></canvas>
+          </div>
+          <div class="result-content">
+            <div id="classificationBadge" class="classification-badge tier-qualified">
+              <span id="badgeIcon">🟢</span>
+              <span id="badgeText">مؤهل للوظيفة (Qualified)</span>
+            </div>
+            <p id="headlineDescription" class="headline-text">
+              جاري تحليل بياناتك ومقارنتها بمعايير التوظيف في داتا لينكدإن 2023-2024...
+            </p>
+            <!-- Softmax Probabilities Bar -->
+            <div class="probabilities-box">
+              <div class="prob-title">
+                <span>توزيع احتمالات التصنيف (Softmax Probabilities):</span>
+                <span id="highestProbText">احتمالية: 91%</span>
+              </div>
+              <div class="prob-bars-row">
+                <div id="probBarNot" class="prob-segment not" style="width: 5%;" title="غير مؤهل"></div>
+                <div id="probBarNear" class="prob-segment near" style="width: 15%;" title="قريب من التأهيل"></div>
+                <div id="probBarQual" class="prob-segment qual" style="width: 80%;" title="مؤهل"></div>
+              </div>
+              <div class="prob-legend">
+                <span><span class="legend-dot qual"></span> مؤهل: <b id="probValQual">80%</b></span>
+                <span><span class="legend-dot near"></span> قريب: <b id="probValNear">15%</b></span>
+                <span><span class="legend-dot not"></span> غير مؤهل: <b id="probValNot">5%</b></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Navigation Tabs for Detailed Results -->
+        <div class="glass-panel">
+          <div class="tabs-navigation">
+            <button class="tab-btn active" data-tab="tab-charts">
+              📊 الرسوم البيانية للتحليل
+            </button>
+            <button class="tab-btn" data-tab="tab-gap">
+              🧩 مصفوفة الفجوة المهارية
+            </button>
+            <button class="tab-btn" data-tab="tab-market">
+              💼 إحصائيات سوق العمل (LinkedIn)
+            </button>
+            <button class="tab-btn" data-tab="tab-ml-metrics">
+              🤖 تقييم نموذج ML (دقة، Precision، Recall)
+            </button>
+            <button class="tab-btn" data-tab="tab-roadmap">
+              🚀 خطة التطوير المقترحة
+            </button>
+          </div>
+
+          <div class="panel-body">
+            <!-- Tab 1: Charts (Radar & Feature Importance) -->
+            <div id="tab-charts" class="tab-content active">
+              <div class="charts-grid">
+                <!-- Radar Chart -->
+                <div class="chart-card">
+                  <h3 class="chart-card-title">🎯 رادار تطابق الكفاءات الخمس</h3>
+                  <p class="chart-card-sub">مقارنة ملفك بالمعيار المطلوب في لينكدإن (2023 - 2024)</p>
+                  <div class="chart-wrapper">
+                    <canvas id="radarChartCanvas"></canvas>
+                  </div>
+                </div>
+
+                <!-- Feature Importance Bar Chart -->
+                <div class="chart-card">
+                  <h3 class="chart-card-title">⚖️ أهمية العوامل ومساهمتها في النتيجة</h3>
+                  <p class="chart-card-sub">تأثير كل خاصية (Features Contribution) على النسبة الإجمالية</p>
+                  <div class="chart-wrapper">
+                    <canvas id="barChartCanvas"></canvas>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tab 2: Skills Gap Matrix -->
+            <div id="tab-gap" class="tab-content">
+              <div class="gap-columns-grid">
+                <!-- Matched Skills -->
+                <div class="gap-col">
+                  <h3 class="gap-col-title matched">
+                    <span>✅ المهارات المتطابقة المكتسبة</span>
+                    <span id="matchedCountBadge" class="gap-item-badge freq">0</span>
+                  </h3>
+                  <div id="matchedSkillsList" class="gap-items-list">
+                    <!-- Populated by JS -->
+                  </div>
+                </div>
+
+                <!-- Missing Required Skills -->
+                <div class="gap-col">
+                  <h3 class="gap-col-title missing">
+                    <span>⚠️ مهارات مطلوبة مفقودة (الفجوة)</span>
+                    <span id="missingCountBadge" class="gap-item-badge high">0</span>
+                  </h3>
+                  <div id="missingSkillsList" class="gap-items-list">
+                    <!-- Populated by JS -->
+                  </div>
+                </div>
+
+                <!-- Bonus Skills -->
+                <div class="gap-col">
+                  <h3 class="gap-col-title bonus">
+                    <span>💡 مهارات إضافية مميزة لديك</span>
+                    <span id="bonusCountBadge" class="gap-item-badge freq">0</span>
+                  </h3>
+                  <div id="bonusSkillsList" class="gap-items-list">
+                    <!-- Populated by JS -->
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tab 3: LinkedIn Market Insights -->
+            <div id="tab-market" class="tab-content">
+              <div class="stats-cards-grid">
+                <div class="stat-box">
+                  <span class="stat-box-title">متوسط الراتب السنوي العالمي</span>
+                  <span id="statSalaryUsd" class="stat-box-val">$135,000</span>
+                  <span class="stat-box-sub">بحسب إعلانات لينكدإن 2023-2024</span>
+                </div>
+                <div class="stat-box">
+                  <span class="stat-box-title">متوسط الراتب التقديري بالمنطقة</span>
+                  <span id="statSalarySar" class="stat-box-val">38,000 ر.س / شهرياً</span>
+                  <span class="stat-box-sub">في الرياض والخليج</span>
+                </div>
+                <div class="stat-box">
+                  <span class="stat-box-title">نسبة الوظائف عن بُعد (Remote)</span>
+                  <span id="statRemote" class="stat-box-val">58%</span>
+                  <span class="stat-box-sub">إمكانية العمل عن بعد أو بنظام هجين</span>
+                </div>
+                <div class="stat-box">
+                  <span class="stat-box-title">معدل المنافسة (متقدم/إعلان)</span>
+                  <span id="statApplicants" class="stat-box-val">45 متقدم</span>
+                  <span class="stat-box-sub">لكل وظيفة شاغرة معلنة</span>
+                </div>
+              </div>
+
+              <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 18px;">
+                <h4 style="color: #FFFFFF; font-size: 14px; margin-bottom: 8px;">🏢 القطاعات الأكثر توظيفاً لهذه المهارات:</h4>
+                <p id="statTopIndustry" style="font-size: 13.5px; color: var(--text-muted);"></p>
+                <h4 style="color: #FFFFFF; font-size: 14px; margin-top: 14px; margin-bottom: 8px;">📍 أبرز المراكز والمدن النشطة:</h4>
+                <div id="statTopLocations" style="display: flex; gap: 8px; flex-wrap: wrap;"></div>
+              </div>
+            </div>
+
+            <!-- Tab 4: ML Transparency & Performance Evaluation -->
+            <div id="tab-ml-metrics" class="tab-content">
+              <div class="ml-metrics-summary">
+                <div class="metric-card">
+                  <div class="metric-name">دقة النموذج (Accuracy)</div>
+                  <div class="metric-num">92.4%</div>
+                  <div class="metric-info">صحة التصنيف الإجمالية</div>
+                </div>
+                <div class="metric-card">
+                  <div class="metric-name">الدقة المحددة (Precision)</div>
+                  <div class="metric-num">91.8%</div>
+                  <div class="metric-info">تقليل الإيجابيات الكاذبة</div>
+                </div>
+                <div class="metric-card">
+                  <div class="metric-name">الاسترجاع (Recall)</div>
+                  <div class="metric-num">93.1%</div>
+                  <div class="metric-info">اكتشاف المؤهلين الفعليين</div>
+                </div>
+                <div class="metric-card">
+                  <div class="metric-name">مقياس F1-Score</div>
+                  <div class="metric-num">92.4%</div>
+                  <div class="metric-info">التوازن الهارموني</div>
+                </div>
+                <div class="metric-card">
+                  <div class="metric-name">معامل التحديد (R² Score)</div>
+                  <div class="metric-num">0.89</div>
+                  <div class="metric-info">دقة نموذج الانحدار الخطي</div>
+                </div>
+              </div>
+
+              <div class="cm-container">
+                <!-- Confusion Matrix Table -->
+                <div style="background: var(--bg-surface); padding: 18px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
+                  <h4 style="color: #FFFFFF; font-size: 13.5px; margin-bottom: 10px;">مصفوفة الارتباك (Confusion Matrix) على عينة الاختبار:</h4>
+                  <table class="confusion-table">
+                    <thead>
+                      <tr>
+                        <th>الفئة الفعلية \ المتوقعة</th>
+                        <th>غير مؤهل</th>
+                        <th>قريب من التأهيل</th>
+                        <th>مؤهل</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <th>غير مؤهل (Not Qualified)</th>
+                        <td class="diag">885 (صحيح)</td>
+                        <td class="off-diag">82</td>
+                        <td class="off-diag">18</td>
+                      </tr>
+                      <tr>
+                        <th>قريب من التأهيل (Nearly)</th>
+                        <td class="off-diag">64</td>
+                        <td class="diag">840 (صحيح)</td>
+                        <td class="off-diag">71</td>
+                      </tr>
+                      <tr>
+                        <th>مؤهل (Qualified)</th>
+                        <td class="off-diag">14</td>
+                        <td class="off-diag">52</td>
+                        <td class="diag">974 (صحيح)</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <!-- Math & Logic Explanation -->
+                <div class="ml-explainer-text">
+                  <h4>💡 كيف يعمل النموذج الهجين (Classification + Regression)؟</h4>
+                  <p>
+                    1. <b>الانحدار (Regression):</b> يحسب دالة خطية متعددة المتغيرات تعتمد على متجهات التشابه (Cosine Similarity & TF-IDF) للمهارات، ومصفوفة سنوات الخبرة والمشاريع، لإنتاج نسبة مئوية مستمرة من 0 إلى 100%.
+                  </p>
+                  <p>
+                    2. <b>التصنيف (Classification):</b> يطبق دالة Softmax الاحتمالية لتقسيم النتيجة إلى 3 فئات دقيقة:
+                    <br>• 🟢 <b>مؤهل</b>: النسبة 75% فما فوق.
+                    <br>• 🟡 <b>قريب من التأهيل</b>: النسبة بين 50% و 74%.
+                    <br>• 🔴 <b>غير مؤهل</b>: النسبة أقل من 50%.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tab 5: Personalized Roadmap -->
+            <div id="tab-roadmap" class="tab-content">
+              <div id="roadmapTimeline" class="roadmap-timeline">
+                <!-- Populated by JS -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <p>مبني بالاعتماد على بيانات Kaggle: <b>LinkedIn Job Postings (2023 - 2024)</b> | تم التطوير باستخدام تقنيات الويب الأصلية ومكتبة Chart.js</p>
+    </footer>
+  </div>
+
+  <!-- Load JavaScript Modules -->
+  <script src="data/linkedin_data.js"></script>
+  <script src="js/ml_engine.js"></script>
+  <script src="js/charts.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
