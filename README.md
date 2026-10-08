@@ -90,6 +90,7 @@ Then open your browser at:
 Simply double-click `index.html` in Windows File Explorer or open it in Google Chrome / Edge.
 
 ---
-برنامج اساسيات تعلم الاله
+### 🎓 Program
+Applied Machine Learning Fundamentals
 GitHub https://github.com/SDAIAAcademy
 ```
