@@ -90,7 +90,12 @@ Then open your browser at:
 Simply double-click `index.html` in Windows File Explorer or open it in Google Chrome / Edge.
 
 ---
-### 🎓 Program
-Applied Machine Learning Fundamentals
-GitHub https://github.com/SDAIAAcademy
+---
+
+## 🎓 Program
+
+**Applied Machine Learning Fundamentals**  
+**SDAIA Academy**
+
+[GitHub](https://github.com/SDAIAAcademy)
 ```
